@@ -4,9 +4,7 @@ Created on Aug 12, 2012
 @author: Rob
 '''
 
-import argparse, random, os, json, copy, time
-import hashlib
-import cherrypy
+import argparse, random, os, json, copy, time, hashlib, cherrypy
 
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
@@ -14,8 +12,6 @@ from ws4py.messaging import TextMessage
 
 _clients = {}
 _clientsIds = {}
-
-
 
 _object_details = {"111111":
                    {"ID": "111111",
@@ -318,7 +314,7 @@ class Root(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Echo CherryPy Server')
-    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--host', default='18.111.4.200')
     parser.add_argument('-p', '--port', default=9000, type=int)
     parser.add_argument('--ssl', action='store_true')
     args = parser.parse_args()

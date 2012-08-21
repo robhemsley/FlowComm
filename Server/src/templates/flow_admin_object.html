@@ -1,0 +1,329 @@
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <title>Flow - Object</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+
+	<link rel="stylesheet" href="/static/css/bootstrap-responsive.min.css" type="text/css" charset="utf-8"/>
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" charset="utf-8"/>
+	<link rel="stylesheet" href="/static/css/jquery.nailthumb.1.1.min.css" type="text/css" charset="utf-8"/>
+
+   	<script type='application/javascript' src="/static/js/jquery.min.js"></script>
+	<script type='application/javascript' src="/static/js/jquery.md5.js"></script>
+	<script type='application/javascript' src="/static/js/jquery.nailthumb.1.1.min.js"></script>
+	<script type='application/javascript' src="/static/js/bootstrap-tab.js"></script>
+	<script type='application/javascript' src="/static/js/bootstrap-typeahead.js"></script>
+	<script type='application/javascript' src="/static/js/jquery.form.js"></script>
+	
+	<style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    
+    
+    <script>
+    objDetails = undefined;
+    
+    
+    function reload(){
+    	$.getJSON('/API/V0/{{ objId }}/object/{{ objId }}/', function(data) {		
+			objDetails = data;
+			
+			output = "";
+		  	$.each(data, function(key, val) {
+		  		$.each(val["targetImgs"], function(key1, targetImg) {
+		  			filename = targetImg["imgUrl"].substring(targetImg["imgUrl"].lastIndexOf('/')+1);
+		    		output += '<li class="span3"><div class="thumbnail"><div class="nailthumb-container"><a class="objImgSelect" imgId="'+key1+'"><img src="'+targetImg["imgUrl"]+'" alt=""/></a></div><div class="caption"><h5>'+filename+'</h5></br><form class="form-search"><label class="control-label" for="input01">Width: '+targetImg["width"]+' cm</label><label class="control-label" for="input02" style="padding-left:10px">Height: '+targetImg["height"]+' cm</label></form></form></form></div></div></li>'		    
+		  		});
+		  	
+		  		inputDetails = "";
+		  		outputDetails = "";
+		   		$.each(val["interfaces"], function(key1, interface) {
+		   			console.log(val["interfaces"]);
+					$.each(interface, function(id, data) {
+						if (key1 == "input"){
+							inputDetails += '<li class="span3"><a class="objInputSelect" interId="'+id+'" action="'+data["action"]+'"><div class="thumbnail"><div class="caption"><h5>Action: '+toTitleCase(data["action"])+'</h5></br><p>'+data["body"]+'</p></div></div></a></li>'		    
+						}else{
+							outputDetails += '<li class="span3"><a class="objOutputSelect" interId="'+id+'" action="'+data["action"]+'"><div class="thumbnail"><div class="caption"><h5>Action: '+toTitleCase(data["action"])+'</h5></br><p>'+data["body"]+'</p></div></div></a></li>'		    
+						}
+					});
+		  		});
+		  	
+		 		$("#detailsTitle").attr("value", val["title"]);
+		  		$("#detailsDetails").html(val["details"]);
+		  		$("#objTitle").html("Object - "+val["title"]);
+		  });
+		  
+		  if(inputDetails.length == 0){
+		  	$("#inputContainer").hide();
+		  }else{
+		  	$("#inputContainer").fadeIn();
+		  	$("#objInputs").html(inputDetails);
+		  }
+		  
+		  console.log(outputDetails.length == 0);
+		  if(outputDetails.length == 0){
+		  	$("#outputContainer").hide();
+		  }else{
+		  	$("#outputContainer").fadeIn();
+		  	$("#objOutputs").html(outputDetails);
+		  }
+		  
+		  if(output.length == 0){
+		  	$("#imagesContainer").hide();
+		  }else{
+		  	$("#imagesContainer").fadeIn();
+		  	$("#objThumbs").html(output);
+		  }
+		  
+		  $('.objImgSelect').bind('click', setImage);
+		  $('.objInputSelect').bind('click', setInput);
+		  $('.objOutputSelect').bind('click', setOutput);
+		  
+		  $('.nailthumb-container').nailthumb({width:210, height:180});
+		  //$('#imgDisplay').nailthumb({width:360, height:268});
+		});
+    }
+    
+    
+    $(function() {
+    	$("#objectDetailsForm").ajaxForm({error: function(){alert("Something Went Wrong");}, success: function(){alert("Saved");}}); 
+    	$("#objectImageForm").ajaxForm({error: function(){alert("Something Went Wrong");}, success: function(){
+    		alert("Saved");
+    		$("#imgWidth").attr("value", "0")
+			$("#imgHeight").attr("value", "0")
+			$("#imgDisplay").attr("src", "http://placehold.it/360x268");
+			clearFileInput();
+
+    		reload();
+    	}}); 
+    	
+    	$("#objectOutputForm").ajaxForm({error: function(){alert("Something Went Wrong");}, success: function(){
+       		alert("Saved");
+    		reload();
+    	}}); 
+    	
+    	$("#objectInputForm").ajaxForm({error: function(){alert("Something Went Wrong");}, success: function(){
+    		alert("Saved");
+    		reload();
+    	}}); 
+    	    	
+    	$("#imgRemove").click(function(event){
+    		$.ajax({
+				url: '/API/V0/{{ objId }}/objImageDelete',
+				type: 'POST',
+				data: { imgUrl: $("#imgUrl").attr("value")},
+			  	success:function(data){
+			  		alert("Deleted");
+			  		$("#imgWidth").attr("value", "0")
+					$("#imgHeight").attr("value", "0")
+					$("#imgDisplay").attr("src", "http://placehold.it/360x268");
+			    	clearFileInput();
+			    	
+			    	reload();
+			  	}
+			});
+    	});	
+    	
+    	$("#deleteObj").click(function(event){
+    		$.ajax({
+				url: '/API/V0/{{ objId }}/objDelete',
+				type: 'POST',
+			  	success:function(data){
+			  		alert("Deleted");
+					window.location.href = "/admin/objects/";
+			  	}
+			});
+    	});
+    	   
+    	reload();
+	});
+	
+	
+	function clearFileInput() { 
+	    var oldInput = document.getElementById("imgFile"); 
+	     
+	    var newInput = document.createElement("input"); 
+	     
+	    newInput.type = "file"; 
+	    newInput.id = oldInput.id; 
+	    newInput.name = oldInput.name; 
+	    newInput.className = oldInput.className; 
+	    newInput.style.cssText = oldInput.style.cssText; 
+	    // copy any other relevant attributes 
+	     
+	    oldInput.parentNode.replaceChild(newInput, oldInput); 
+	}
+	
+	
+	function toTitleCase(str) {
+    	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	}
+
+	function setImage(event){
+		$(".tab-pane").removeClass("active");
+		$("#imageTab").addClass("active");
+		$(".tab").removeClass("active");
+		$("#imageTabTab").addClass("active");
+		tmp = objDetails[0]["targetImgs"][$(this).attr("imgId")]
+		$("#imgWidth").attr("value", tmp["width"])
+		$("#imgHeight").attr("value", tmp["height"])
+		
+		$("#imgDisplay").attr("src", tmp["imgUrl"]);
+		//$('#imgDisplay').nailthumb({width:360, height:268});
+		$("#imgUrl").attr("value", tmp["imgUrl"]);
+	}
+	
+	function setInput(event){
+		$(".tab-pane").removeClass("active");
+		$("#inputTab").addClass("active");
+		$(".tab").removeClass("active");
+		
+		$("#inputTabTab").addClass("active");
+		tmp = objDetails[0]["interfaces"]["input"][$(this).attr("interId")]
+		console.log(tmp);
+		$("#inputAction").attr("value", toTitleCase($(this).attr("action")))
+		$("#inputId").attr("value", $(this).attr("interId"))
+		$("#inputBody").html(tmp["body"])
+	}
+	
+	function setOutput(event){
+		$(".tab-pane").removeClass("active");
+		$("#outputTab").addClass("active");
+		$(".tab").removeClass("active");
+		
+		$("#outputTabTab").addClass("active");
+		tmp = objDetails[0]["interfaces"]["output"][$(this).attr("interId")]
+		console.log(tmp);
+		$("#outputAction").attr("value", toTitleCase($(this).attr("action")))
+		$("#outputId").attr("value", $(this).attr("interId"))
+		$("#outputBody").html(tmp["body"])
+	}
+	</script>
+
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Flow</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li><a href="/admin/">Home</a></li>
+              <li class="active"><a href="/admin/objects/">Objects</a></li>
+              <li><a href="/admin/about/">About</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <h1 id="objTitle">Object</h1>
+      		</br>
+      
+<div class="tabbable well" style="margin-bottom: 18px;">
+        <ul class="nav nav-tabs">
+          <li class="tab active" id="detailsTabTab"><a href="#detailsTab" data-toggle="tab">Details</a></li>
+          <li class="tab" id="imageTabTab"><a href="#imageTab" data-toggle="tab">Images</a></li>
+          <li class="tab" id="inputTabTab"><a href="#inputTab" data-toggle="tab">Inputs</a></li>
+          <li class="tab" id="outputTabTab"><a href="#outputTab" data-toggle="tab">Outputs</a></li>
+        </ul>
+        <div class="tab-content" style="padding-bottom: 9px; border-bottom: 1px solid #ddd;">
+        
+		 <div class="tab-pane active" id="detailsTab">
+			<form action="/API/V0/{{ objId }}/objDetailsUpdate" method="post" id="objectDetailsForm">
+        		<label>Title:</label>
+        		<input type="text" style="height:30px" name="detailsTitle" id="detailsTitle">
+        		</br>
+        		<label>Details:</label>
+        		<textarea class="input-xlarge" rows="3" style="height:100px" name="detailsDetails" id="detailsDetails"></textarea>        	   
+   				</br>
+        		<button type="submit" class="btn">Save Details</button>
+        		<button type="button" class="btn" id="deleteObj">Delete Object</button>
+      		</form>
+          </div>
+          <div class="tab-pane" id="imageTab">
+          	<div id="imgThumbnail" style="float:left">
+            <img src="http://placehold.it/360x268" alt="" style="float:left" id="imgDisplay" width="360" height="268">
+            </div>
+            <div style="padding-left:390px">
+            <form action="/API/V0/{{ objId }}/objImageUpdate" method="post" id="objectImageForm">
+                <label>Upload Image:</label>
+            	<input type="file" style="margin-left:10px" name="imgFile" id="imgFile"></input>
+            	</br>
+            	</br>
+        		<label>Height:</label>
+        		<input type="text" style="height:30px" name="imgHeight" id="imgHeight" value="0">
+        		</br>
+        		</br>
+        		<label>Width:</label>
+        		<input type="text" style="height:30px" name="imgWidth" id="imgWidth" value="0">
+        		<input type="hidden" style="height:30px" name="imgUrl" id="imgUrl">
+   				</br>
+   				</br>
+        		<button type="submit" class="btn">Save</button>
+      			<button type="button" class="btn" style="margin-left:10px" id="imgRemove">Delete Image</button>
+      		</form>		
+      		</div>
+          </div>
+          <div class="tab-pane" id="inputTab">
+			<form action="/API/V0/{{ objId }}/objInputUpdate" method="post" id="objectInputForm">
+        		<label>Action:</label>
+        		<input type="text" data-provide="typeahead" style="height:30px" name="action" id="inputAction">
+        		</br>
+        		<label>Body:</label>
+        		<textarea class="input-xlarge" id="inputBody" rows="3" name="body" style="height:100px"></textarea>  
+        		<input type="hidden" style="height:30px" name="interId" id="inputId">      	   
+   				</br>
+        		<button type="submit" class="btn">Save Input</button>
+      		</form>
+          </div>
+          <div class="tab-pane" id="outputTab">
+			<form action="/API/V0/{{ objId }}/objOutputUpdate" method="post" id="objectOutputForm">
+        		<label>Action:</label>
+        		<input type="text" data-provide="typeahead" rows="3" style="height:30px" name="action" id="outputAction">
+        		</br>
+        		<label>Body:</label>
+        		<textarea class="input-xlarge" name="body" id="outputBody" rows="3" style="height:100px"></textarea>
+        		<input type="hidden" style="height:30px" name="interId" id="outputId">      	           	   
+   				</br>
+        		<button type="submit" class="btn">Save Output</button>
+      		</form>
+          </div>
+        </div>
+      </div>
+      	<div id="imagesContainer" style="display:none">
+	      	<h3 style="padding-bottom: 10px">Object Images</h3>
+			<ul class="thumbnails" id="objThumbs"> 
+	      	</ul>
+      	</div>
+       	<div id="inputContainer" style="display:none">
+	      	<h3 style="padding-bottom: 10px">Object Inputs</h3>
+	 		<ul class="thumbnails" id="objInputs"> 
+	      	</ul>
+		</div>
+		<div id="outputContainer" style="display:none">
+      		<h3 style="padding-bottom: 10px">Object Outputs</h3>
+       		<ul class="thumbnails" id="objOutputs"> 
+      		</ul>
+      	</div>
+    </div>
+    
+    
+
+</body></html>

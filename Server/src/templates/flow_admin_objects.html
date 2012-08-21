@@ -1,0 +1,120 @@
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <title>Flow - Objects</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+
+	<link rel="stylesheet" href="/static/css/bootstrap-responsive.min.css" type="text/css" charset="utf-8"/>
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" charset="utf-8"/>
+	<link rel="stylesheet" href="/static/css/jquery.nailthumb.1.1.min.css" type="text/css" charset="utf-8"/>
+
+   	<script type='application/javascript' src="/static/js/jquery.min.js"></script>
+	<script type='application/javascript' src="/static/js/jquery.md5.js"></script>
+	<script type='application/javascript' src="/static/js/jquery.nailthumb.1.1.min.js"></script>
+	<script type='application/javascript' src="/static/js/bootstrap-modal.js"></script>
+	
+	<style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    
+    
+    <script>
+    $(function() {
+    	reload();
+    	
+   		$("#addObjBtn").click(function(){
+   			$.ajax({
+				url: '/API/V0/addObj',
+				type: 'POST',
+				data: { objTitle: $("#objTitle").attr("value")},
+			  	success:function(data){
+			  		$('#myModal').modal('hide')
+					reload();
+			  	}
+			});
+   		});
+	});
+	
+	
+	function reload(){
+		$.getJSON('/API/V0/12/objects', function(data) {		
+	   		output = "";
+			$.each(data, function(key, val) {
+			  	if(val["targetImgs"].length == 0){
+			  		imgUrl = "";
+			  	}else{
+			  		imgUrl = val["targetImgs"][0]["imgUrl"];
+				}
+			    output += '<li class="span3"><a href="/admin/object/?objId='+val["id"]+'" class="thumbnail"><div class="nailthumb-container"><img src="'+imgUrl+'" alt=""></div><div class="caption"><h5>'+val["title"]+'</h5></div></a></li>'		    
+			});
+		  
+		  	$("#objThumbs").html(output);
+		  	$('.nailthumb-container').nailthumb({width:210, height:180});
+		});
+	}
+	
+	
+	
+	</script>
+
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Flow</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li><a href="/admin/">Home</a></li>
+              <li class="active"><a href="/admin/objects/">Objects</a></li>
+              <li><a href="/admin/about/">About</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <h1>Objects</h1>
+      <p>Current network connected objects. </p>
+
+		<ul class="thumbnails" id="objThumbs">
+
+
+ 
+      </ul>
+	<button class="btn" id="addObj" data-toggle="modal" href="#myModal" >Add Object</button>
+    </div>
+    
+    <div class="modal hide" id="myModal">
+		<div class="modal-header">
+	    	<button type="button" class="close" data-dismiss="modal">x</button>
+	    	<h3>New Object</h3>
+	  	</div>
+	  	<div class="modal-body">
+	  		</br>
+	    	<p>Please enter the name of the object.</p>
+        	<input type="text" style="height:30px" name="objTitle" id="objTitle">
+	  	</div>
+	  	<div class="modal-footer">
+	    	<a href="#" class="btn" data-dismiss="modal">Close</a>
+	    	<a href="#" class="btn btn-primary" id="addObjBtn">Create Object</a>
+	 	</div>
+	</div>
+</body></html>
