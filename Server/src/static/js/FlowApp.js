@@ -172,7 +172,7 @@ function onAppLoaded() {
 		viper.activateReferenceImage(id);
 	}
 	
-	//viper.requireRealityMap();
+	viper.requireRealityMap();
 }
 
 function onNodeLost() {
