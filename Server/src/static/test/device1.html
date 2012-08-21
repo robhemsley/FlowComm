@@ -16,7 +16,7 @@
       		
       		printHandler = function(msgObj){
       			alert("print");
-		    	document.getElementById('PDFtoPrint').src = "msgObj.get_body()";
+		    	document.getElementById('PDFtoPrint').src = msgObj.get_body();
 		    	$('#PDFtoPrint').load(function() {
     				document.getElementById('PDFtoPrint').focus(); 
       				document.getElementById('PDFtoPrint').contentWindow.print();
