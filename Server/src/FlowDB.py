@@ -5,7 +5,7 @@ import MySQLdb.cursors
 class flowDb:
     db = None
     cur = None
-    localDb = True;
+    localDb = False;
     
     def __init__(self):
         self._connect()

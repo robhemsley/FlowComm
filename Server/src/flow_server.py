@@ -301,7 +301,7 @@ class APIHandler(tornado.web.RequestHandler):
                     blah = open(filename, "w")
                     blah.write(self.request.files['imgFile'][0]['body'])
                     blah.close()
-                    imgUrl = "%s/%s/%s/%s"% ("http://127.0.0.1:9000/imgdata", dir[0], dir[0], self.request.files["imgFile"][0]["filename"])
+                    imgUrl = "%s/%s/%s/%s"% ("http://flow.robhemsley.webfactional.com/imgdata", dir[0], dir[0], self.request.files["imgFile"][0]["filename"])
                     
                     object.create_target(imgHeight, imgWidth, imgUrl)
                 else:
@@ -395,5 +395,6 @@ class FlowSocketHandler(tornado.websocket.WebSocketHandler):
 if __name__ == "__main__":
     tornado.options.parse_command_line()
     app = Application()
-    app.listen(options.port)
+    #app.listen(options.port)
+    app.listen(19708)
     tornado.ioloop.IOLoop.instance().start()
