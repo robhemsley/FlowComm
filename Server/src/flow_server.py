@@ -221,6 +221,7 @@ class Application(tornado.web.Application):
             (r"/admin/(.*)", AdminHandler),
             (r"/API/V0/(.*)", APIHandler),
             (r'/imgdata/(.*)', tornado.web.StaticFileHandler, {'path': "usrfiles/"}),
+            (r"/forward/", ForwardHandler),
         ]
         
         settings = dict(
@@ -291,7 +292,6 @@ class APIHandler(tornado.web.RequestHandler):
                 imgUrl = self.get_argument("imgUrl")
                 
                 object = flowDbController.update_object(dir[0])
-                logging.info("cats")
                 if "imgFile" in self.request.files:
                     filename = "usrfiles/%s/%s/%s"% (dir[0], dir[0], self.request.files["imgFile"][0]["filename"])
                     logging.info(filename)
@@ -373,6 +373,11 @@ class APIHandler(tornado.web.RequestHandler):
 class ClientHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("flow_client.html")
+        
+class ForwardHandler(tornado.web.RequestHandler):
+    def get(self, *args, **kwargs):
+        f = urllib2.urlopen(self.get_argument("url"))
+        self.write(f.read())
 
 class FlowSocketHandler(tornado.websocket.WebSocketHandler):
     _deviceID = None
