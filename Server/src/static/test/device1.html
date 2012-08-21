@@ -14,6 +14,15 @@
       		    window.open(msgObj.get_body(),'_newtab');
       		}
       		
+      		printHandler = function(msgObj){
+      			alert("print");
+		    	document.getElementById('PDFtoPrint').src = "msgObj.get_body()";
+		    	$('#PDFtoPrint').load(function() {
+    				document.getElementById('PDFtoPrint').focus(); 
+      				document.getElementById('PDFtoPrint').contentWindow.print();
+    			});
+      		}
+      		
 
       
 	        $(document).ready(function() {	
@@ -21,6 +30,7 @@
 				$('#connect').click(function() {					
 					flowConnector = new Flow(String($('#deviceId').val()), String($('#serverAddr').val()));
 					flowConnector.addHandler("OPEN", openHandler);
+					flowConnector.addHandler("PRINT", printHandler);
 					
 					flowConnector.connect(function(){
 						alert("connected");
@@ -34,6 +44,7 @@
 		            $('#message').val("");
 		            return false;
 		    	});
+		    	
 	        });
     	</script>
     </head>
@@ -45,8 +56,10 @@
 	    </br>
 	   	<label for="deviceId">Device ID: </label><input type="text" id="deviceId" value="1">
 	   	</br>
-	   	<label for="serverAddr">Server Address: </label><input type="text" id="serverAddr" value="169.254.202.170:9000">
+	   	<label for="serverAddr">Server Address: </label><input type="text" id="serverAddr" value="108.59.3.115:19708">
 	   	<input id="connect" type="submit" value="Connect">
 	    </br>
+	    
+	    <iframe src="" id="PDFtoPrint" width="200px" height="200px"></iframe>
 	</body>
 </html>

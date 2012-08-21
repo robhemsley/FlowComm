@@ -323,16 +323,19 @@ class APIHandler(tornado.web.RequestHandler):
                     action = ""
                 
                 try:
-                    body = str(self.get_argument("body")).upper()
+                    body = str(self.get_argument("body"))
                 except:
                     body = ""
 
                 try:
-                    interId = str(self.get_argument("interId")).upper()
+                    interId = str(self.get_argument("interId"))
                 except:
                     interId = "" 
                       
-                object.update_interface("input", action, body, interId)
+                if interId == "":
+                    object.create_interface("input", action, body)
+                else:
+                    object.update_interface("input", action, body, interId)
                 
             if dir[1] == "objOutputUpdate":
                 object = flowDbController.update_object(dir[0])
@@ -343,16 +346,19 @@ class APIHandler(tornado.web.RequestHandler):
                     action = ""
                 
                 try:
-                    body = str(self.get_argument("body")).upper()
+                    body = str(self.get_argument("body"))
                 except:
                     body = ""
 
                 try:
-                    interId = str(self.get_argument("interId")).upper()
+                    interId = str(self.get_argument("interId"))
                 except:
                     interId = ""   
-                                
-                object.update_interface("output", action, body, interId)
+                
+                if interId == "":
+                    object.create_interface("input", action, body)
+                else:
+                    object.update_interface("output", action, body, interId)
         
             if dir[1] == "objDeleteInterface":
                 object = flowDbController.update_object(dir[0])

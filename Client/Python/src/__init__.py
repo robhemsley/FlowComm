@@ -145,8 +145,8 @@ class PrintHandler(QObject):
         outputfile = tempfile.gettempdir()+"/"+tmp.get_body().split('/')[-1]
         with open(outputfile, "wb") as code:
             code.write(data)
-        
-        popen2.popen2(["lpr", "-P", 'ecopress_media_mit_edu', outputfile])
+            
+        popen2.popen2(["lpr", "-P", 'ecopress_media_mit_edu', '-o', 'Duplex=DuplexNoTumble', outputfile])
         
 class CopyHandler(QObject):
     def __init__(self, parent=None):
@@ -159,7 +159,6 @@ class CopyHandler(QObject):
         
         f = urllib2.urlopen(tmp.get_body())
         data = f.read()
-        
         
         outputDir = os.path.join(os.path.expanduser("~"), "Flow")
         if not os.path.exists(outputDir):

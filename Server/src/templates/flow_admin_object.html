@@ -150,6 +150,10 @@
 				data: {interId: $("#inputId").attr("value")},
 			  	success:function(data){
 			  		alert("Deleted");
+			  		$("#inputId").attr("value", "");
+			  		$("#inputAction").attr("value", "");
+			  		$("#inputBody").attr("value", "");
+			  		reload();
 			  	}
 			});
     	});
@@ -161,6 +165,10 @@
 				data: {interId: $("#inputId").attr("value")},
 			  	success:function(data){
 			  		alert("Deleted");
+			  		$("#inputId").attr("value", "");
+			  		$("#outputAction").attr("value", "");
+			  		$("#outputBody").attr("value", "");
+			  		reload();
 			  	}
 			});
     	});
