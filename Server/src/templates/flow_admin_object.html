@@ -142,6 +142,28 @@
 			  	}
 			});
     	});
+    	
+    	$("#deleteInputBtn").click(function(event){
+    		$.ajax({
+				url: '/API/V0/{{ objId }}/objDeleteInterface',
+				type: 'POST',
+				data: {interId: $("#inputId").attr("value")},
+			  	success:function(data){
+			  		alert("Deleted");
+			  	}
+			});
+    	});
+    	
+      	$("#deleteOutputBtn").click(function(event){
+    		$.ajax({
+				url: '/API/V0/{{ objId }}/objDeleteInterface',
+				type: 'POST',
+				data: {interId: $("#inputId").attr("value")},
+			  	success:function(data){
+			  		alert("Deleted");
+			  	}
+			});
+    	});
     	   
     	reload();
 	});
@@ -291,6 +313,7 @@
         		<input type="hidden" style="height:30px" name="interId" id="inputId">      	   
    				</br>
         		<button type="submit" class="btn">Save Input</button>
+        		<button type="button" class="btn" id="deleteInputBtn">Delete Input</button>
       		</form>
           </div>
           <div class="tab-pane" id="outputTab">
@@ -303,6 +326,7 @@
         		<input type="hidden" style="height:30px" name="interId" id="outputId">      	           	   
    				</br>
         		<button type="submit" class="btn">Save Output</button>
+        		<button type="button" class="btn" id="deleteOutputBtn">Delete Output</button>
       		</form>
           </div>
         </div>

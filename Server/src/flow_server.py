@@ -353,6 +353,10 @@ class APIHandler(tornado.web.RequestHandler):
                     interId = ""   
                                 
                 object.update_interface("output", action, body, interId)
+        
+            if dir[1] == "objDeleteInterface":
+                object = flowDbController.update_object(dir[0])
+                object.delete_interface(self.get_argument("interId"))
                 
         else:
             if dir[0] == "addObj":

@@ -73,6 +73,10 @@ class dbObject:
     def update_interface(self, type, action, body, id):
         self.cur.execute("UPDATE interface SET `obj_id`=%s, `type`=\"%s\", `action`=\"%s\", `body`=\"%s\" WHERE `id`=%s"% (self.obj_id, type, action, body, id))
         self.db.commit()
+        
+    def delete_interface(self, id):
+        self.cur.execute("DELETE FROM interface WHERE `id`=%s"% (id))
+        self.db.commit()
     
     def create_target(self, height, width, url):
         self.cur.execute("INSERT INTO img_target (`obj_id`, `url`, `width`, `height`) VALUES (%s, \"%s\", %s, %s)"% (self.obj_id, url, width, height))

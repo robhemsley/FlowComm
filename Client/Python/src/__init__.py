@@ -185,7 +185,7 @@ def main():
     webView.settings().setAttribute(QWebSettings.JavascriptCanAccessClipboard, True)
     
     webView.loadFinished.connect(addHandlers)
-    webView.load(QUrl("http://127.0.0.1:9000/client"))
+    webView.load(QUrl("http://flow.robhemsley.webfactional.com/client"))
     
     window = QMainWindow()
     window.setCentralWidget(webView)

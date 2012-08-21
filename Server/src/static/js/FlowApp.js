@@ -18,7 +18,7 @@ $(document).ready(function() {
 	loadCookieTargets();
 
 
-	flowConnector = new Flow("DYNAMIC", "18.111.16.5:9000");
+	flowConnector = new Flow("DYNAMIC", "108.59.3.115:19708");
 	connect();
 	
 	flowConnector.addEventListener("onclose", function(){
