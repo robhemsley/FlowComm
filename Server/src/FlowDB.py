@@ -67,59 +67,59 @@ class dbObject:
         self.obj_id = str(obj_id)
 
     def create_interface(self, type, action, body):
-        self.cur.execute("INSERT INTO interface (`obj_id`, `type`, `action`, `body`) VALUES (%s, \"%s\", \"%s\", \"%s\")"% (self.obj_id, type, action, body))
+        self.cur.execute("INSERT INTO interface (`obj_id`, `type`, `action`, `body`) VALUES (%s, %s, %s, %s)", (self.obj_id, type, action, body))
         self.db.commit()
         
     def update_interface(self, type, action, body, id):
-        self.cur.execute("UPDATE interface SET `obj_id`=%s, `type`=\"%s\", `action`=\"%s\", `body`=\"%s\" WHERE `id`=%s"% (self.obj_id, type, action, body, id))
+        self.cur.execute("UPDATE interface SET `obj_id`=%s, `type`=%s, `action`=%s, `body`=%s WHERE `id`=%s", (self.obj_id, type, action, body, id))
         self.db.commit()
         
     def delete_interface(self, id):
-        self.cur.execute("DELETE FROM interface WHERE `id`=%s"% (id))
+        self.cur.execute("DELETE FROM interface WHERE `id`=%s", (id))
         self.db.commit()
     
     def create_target(self, height, width, url):
-        self.cur.execute("INSERT INTO img_target (`obj_id`, `url`, `width`, `height`) VALUES (%s, \"%s\", %s, %s)"% (self.obj_id, url, width, height))
+        self.cur.execute("INSERT INTO img_target (`obj_id`, `url`, `width`, `height`) VALUES (%s, %s, %s, %s)", (self.obj_id, url, width, height))
         self.db.commit()
         
     def update_target(self, height, width, url = None):
         if url == None:
-            self.cur.execute("UPDATE img_target SET `obj_id`=\"%s\", `width`=\"%s\", `height`=\"%s\" WHERE `obj_id`=%s AND `url`=\"%s\""% (self.obj_id, width, height, self.obj_id, url))
+            self.cur.execute("UPDATE img_target SET `obj_id`=%s, `width`=%s, `height`=%s WHERE `obj_id`=%s AND `url`=%s", (self.obj_id, width, height, self.obj_id, url))
         else:    
-            self.cur.execute("UPDATE img_target SET `obj_id`=\"%s\", `url`=\"%s\", `width`=\"%s\", `height`=\"%s\" WHERE `obj_id`=%s AND `url`=\"%s\""% (self.obj_id, url, width, height, self.obj_id, url))
+            self.cur.execute("UPDATE img_target SET `obj_id`=%s, `url`=%s, `width`=%s, `height`=%s WHERE `obj_id`=%s AND `url`=%s", (self.obj_id, url, width, height, self.obj_id, url))
         self.db.commit()
     
     def create_object(self, details, title):
-        self.cur.execute("INSERT INTO object (`details`, `title`) VALUES (\"%s\", \"%s\")"% (details, title))
+        self.cur.execute("INSERT INTO object (`details`, `title`) VALUES (%s, %s)", (details, title))
         self.db.commit()
         self.obj_id = self.cur.lastrowid
         return self.obj_id
     
     def update_object(self, details, title):    
-        self.cur.execute("UPDATE object SET `details`=\"%s\", `title`=\"%s\" WHERE `id`=%s"% (details, title, self.obj_id))
+        self.cur.execute("UPDATE object SET `details`=%s, `title`=%s WHERE `id`=%s", (details, title, self.obj_id))
         self.db.commit()
         
     def delete_target(self, url):
-        self.cur.execute("DELETE FROM img_target WHERE `obj_id`=%s AND `url`=\"%s\""% (self.obj_id, url))
+        self.cur.execute("DELETE FROM img_target WHERE `obj_id`=%s AND `url`=%s", (self.obj_id, url))
         self.db.commit()
         
     def delete_object(self):
-        self.cur.execute("DELETE FROM img_target WHERE `obj_id`=%s"% (self.obj_id))
-        self.cur.execute("DELETE FROM interface WHERE `obj_id`=%s"% (self.obj_id))
-        self.cur.execute("DELETE FROM object WHERE `id`=%s"% (self.obj_id))
+        self.cur.execute("DELETE FROM img_target WHERE `obj_id`=%s", (self.obj_id))
+        self.cur.execute("DELETE FROM interface WHERE `obj_id`=%s", (self.obj_id))
+        self.cur.execute("DELETE FROM object WHERE `id`=%s", (self.obj_id))
         self.db.commit()
 
     def get_object_details(self):
         output = {}
-        self.cur.execute("SELECT * FROM object WHERE `object`.`id` = %s"% (self.obj_id))
+        self.cur.execute("SELECT * FROM object WHERE `object`.`id` = %s", (self.obj_id))
         output = self.cur.fetchall()
         if len(output) == 0:
             return None
         output = output[0]
-        self.cur.execute("SELECT * FROM interface WHERE `interface`.`obj_id` = %s"% (self.obj_id))
+        self.cur.execute("SELECT * FROM interface WHERE `interface`.`obj_id` = %s", (self.obj_id))
         output["interface"] = list(self.cur.fetchall())
         
-        self.cur.execute("SELECT * FROM img_target WHERE `img_target`.`obj_id` = %s"% (self.obj_id))
+        self.cur.execute("SELECT * FROM img_target WHERE `img_target`.`obj_id` = %s", (self.obj_id))
         output["targetImgs"] = list(self.cur.fetchall())
         
         return output

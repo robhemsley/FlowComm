@@ -15,7 +15,7 @@
       		}
       		
       		printHandler = function(msgObj){
-		    	document.getElementById('PDFtoPrint').src = msgObj.get_body();
+		    	document.getElementById('PDFtoPrint').src = "http://flow.robhemsley.webfactional.com/forward/?url="+msgObj.get_body();
 		    	$('#PDFtoPrint').load(function() {
     				document.getElementById('PDFtoPrint').focus(); 
       				document.getElementById('PDFtoPrint').contentWindow.print();
