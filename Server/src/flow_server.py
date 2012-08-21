@@ -6,7 +6,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import tornado.websocket
-import urlib2
+import urllib2
 from tornado.options import define, options
 
 import random, os, json, copy, time, hashlib, os.path, uuid, random
