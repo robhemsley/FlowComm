@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+	<head>
+		<title>Flow Client</title>
+		<link rel="stylesheet" href="/static/css/bootstrap-responsive.min.css" type="text/css" charset="utf-8"/>
+		<link rel="stylesheet" href="/static/css/bootstrap.min.css" type="text/css" charset="utf-8"/>
+		<link rel="stylesheet" href="/static/css/jquery.nailthumb.1.1.min.css" type="text/css" charset="utf-8"/>
+	
+	   	<script type='application/javascript' src="/static/js/jquery.min.js"></script>
+		<script type='application/javascript' src="/static/js/jquery.md5.js"></script>
+		<script type='application/javascript' src="/static/js/jquery.nailthumb.1.1.min.js"></script>
+		<script type='application/javascript' src="/static/js/bootstrap-modal.js"></script>
+			
+		<script type='application/javascript' src="/static/js/Utils.js"></script>
+		<script type='application/javascript' src="/static/js/FlowCore.js"></script>
+      	
+      	<script type="application/javascript">
+      		var flowConnector = undefined;
+      		var flowLog = undefined;
+      		var objConnect = undefined;
+      		var allObjs = undefined;
+      		
+      		openHandler = function(msgObj){
+      		    window.open(msgObj.get_body(),'_newtab');
+      		}
+      		
+      		printHandler = function(msgObj){      		
+      			jsonPrint = JSON.parse(flowConnector.profile.get_outputs()["PRINT"])
+				printerName = jsonPrint["name"];
+				      				
+		    	document.getElementById('PrintDIV').src = "http://flow.robhemsley.webfactional.com/forward/?url="+msgObj.get_body();
+		    	$('#PrintDIV').load(function() {
+    				document.getElementById('PrintDIV').focus(); 
+      				document.getElementById('PrintDIV').contentWindow.print();
+    			});
+      		}
+      		
+
+      
+	        $(document).ready(function() {	
+				flowLog = new FlowLog();
+		    	flowLog.open();	
+
+				$("#login").click(function(event){
+					$("#login").hide();
+					reload();
+				});		
+				
+				$("#condis").click(function(event){
+					if(flowConnector != undefined){
+						if (flowConnector.status() == 1){
+							flowConnector.disconnect();
+							$("#condis").html("Connect");
+						}else{
+							flowConnector.connect(function(){
+								flowLog.log("connect :\nconnected");
+								$("#condis").html("Disconnect")
+							});		
+						}
+					}else{
+						flowConnector = new Flow($.trim(String(objConnect.get_id())), "108.59.3.115:19708");
+						flowConnector.addHandler("OPEN", openHandler);
+						flowConnector.addHandler("PRINT", printHandler);
+						
+						flowConnector.addHandler("onmessage", function(msg){
+							flowLog.log("onmessage :\n"+msg.data);
+						});
+						
+						flowConnector.addHandler("onsend", function(msg){
+							flowLog.log("onsend :\n"+msg);
+						});
+						
+						flowConnector.addHandler("onclose", function(){
+							flowLog.log("onclose :\nClosed");
+						});
+						
+						flowConnector.connect(function(){
+							flowLog.log("connect :\nconnected");
+							$("#condis").html("Disconnect")
+						});		
+					}	
+				});	    	
+	        });
+	        
+	        
+	function reload(){
+		$.getJSON('/API/V0/12/objects', function(data) {		
+	   		output = "";
+	   		allObjs = data;
+	   		console.log(data);
+			$.each(data, function(key, val) {
+				tmp = new FlowObj(val);
+				console.log(tmp);
+			  	if(val["targetImgs"].length == 0){
+			  		imgUrl = "";
+			  	}else{
+			  		imgUrl = val["targetImgs"][0]["imgUrl"];
+				}
+				title = tmp.get_title();
+				details = tmp.get_details();
+				inputList = "";
+				outputList = "";
+			    output += '<li class="span2"><a class="thumbnail" id="'+key+'" outputs="'+outputList+'" inputs="'+inputList+'" name="'+title+'" details="'+details+'" url="'+imgUrl+'"><div class="nailthumb-container"><img src="'+imgUrl+'" alt=""></div><div class="caption"><h5>'+val["title"]+'</h5></div></a></li>'		    
+			});
+      
+		  	$("#objThumbs").html(output);
+		  	$('.thumbnail').bind('click', test);
+		  	$("#objects").show();
+		   	$('.nailthumb-container').nailthumb({width:130, height:100});
+		});
+	}
+	
+	
+	function test(event){
+		objConnect = new FlowObj(allObjs[$(this).attr("id")]);
+		$("#objects").hide();
+	 	$("#objectSelect").show();
+		$("#objName").html($(this).attr("name"));
+		$("#objSelectImg").attr('src', $(this).attr("url"));
+		$("#objSelectTxt").html($(this).attr("name"));
+		$("#objDes").html("<b>Details:</b></br> "+$(this).attr("details"));
+		$("#objInputs").html("<b>Inputs:</b></br> "+$(this).attr("inputs"));
+		$("#objOutputs").html("<b>Outputs:</b></br> "+$(this).attr("outputs"));
+		
+	}
+	        
+    	</script>
+    </head>
+	<body>
+	<div class="container" id="pageBody">
+		<div id="login">
+			<h1>Flow</h1>
+			<p>Login text goes here</p>
+			</br>
+			</br>
+			<form class="form-horizontal">
+				<div class="control-group">
+			    	<label class="control-label" for="inputEmail">Email</label>
+			    	<div class="controls">
+			      		<input type="text" id="inputEmail" placeholder="Email">
+			    	</div>
+			  	</div>
+			  	<div class="control-group">
+			    	<label class="control-label" for="inputPassword">Password</label>
+			    	<div class="controls">
+			      		<input type="password" id="inputPassword" placeholder="Password">
+			    	</div>
+			  	</div>
+			  	<div class="control-group">
+			    	<div class="controls">
+			      		<label class="checkbox">
+			        		<input type="checkbox"> Remember me
+			      		</label>
+			      		<button type="button" class="btn" id="login">Sign in</button>
+			    	</div>
+			  	</div>
+			</form>
+		</div>
+		
+		<div id="objects" style="display:none">
+			<h1>Objects</h1>
+			<p>Please select the object this client controls.</p>
+			</br>
+			<ul class="thumbnails" id="objThumbs">
+			</ul>
+		</div>
+		
+		<div id="objectSelect" style="display:none">
+			<h1 id="objName"></h1>
+			</br>
+			<div style="float:left">
+			<ul class="thumbnails" id="objThumb">
+				<li class="span2">
+					<div>
+						<div class="nailthumb-container">
+							<img src="" alt="" id="objSelectImg">
+						</div>
+						<div class="caption">
+							<h5 id="objSelectTxt"></h5>
+						</div>
+					</div>
+					</br></br>
+					<button type="button" class="btn" id="condis">Connect</button>
+				</li>
+			</ul>
+			</div>
+			<div style="padding-left:150px">
+				<p id="objDes"></p>
+				<p id="objInputs"></p>
+				<p id="objOutputs"></p>
+			</div>
+			</br></br></br></br></br></br></br>
+			<div style="float:none">
+			</div>
+		</div>
+	</div>
+		
+	 <iframe id="PrintDIV" src="" width=0 height=0 style="hidden" frameborder=0 marginheight=0 marginwidth=0 scrolling=no></iframe>
+	</body>
+</html>
