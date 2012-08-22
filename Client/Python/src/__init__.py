@@ -140,14 +140,21 @@ class PrintHandler(QObject):
         print str(message)
         tmp = FlowMsg(message)
         
+        test = webView.page().mainFrame().evaluateJavaScript("flowConnector.profile").toPyObject()
+        output = {}
+        for key, value in test[QString('data')][QString('interfaces')][QString('output')].iteritems():
+            output[str(value[QString('action')])] = str(value[QString('body')])
+        
+        jsonBody = json.loads(output["PRINT"])
+
         f = urllib2.urlopen(tmp.get_body())
         data = f.read()
         outputfile = tempfile.gettempdir()+"/"+tmp.get_body().split('/')[-1]
         with open(outputfile, "wb") as code:
             code.write(data)
-            
-        popen2.popen2(["lpr", "-P", 'ecopress_media_mit_edu', '-o', 'Duplex=DuplexNoTumble', outputfile])
-        
+         
+        popen2.popen2(["lpr", "-P", jsonBody["name"], '-o', 'Duplex=DuplexNoTumble', outputfile])
+
 class CopyHandler(QObject):
     def __init__(self, parent=None):
         super(CopyHandler, self).__init__(parent)
@@ -169,9 +176,6 @@ class CopyHandler(QObject):
             code.write(data)
         
         openFolder(outputDir)
-
-
-
 
 def main():
     global webView
@@ -200,7 +204,7 @@ def addHandlers():
     addhandler(OpenHandler(), "openHandler", "OPEN")    
     addhandler(PrintHandler(), "printHandler", "PRINT")
     addhandler(CopyHandler(), "copyHandler", "COPY")
-
+    
 if __name__ == "__main__":
     main()
 

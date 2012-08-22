@@ -9,12 +9,16 @@
       	
       	<script type="application/javascript">
       		var flowConnector = undefined;
+      		var flowLog = undefined;
       		
       		openHandler = function(msgObj){
       		    window.open(msgObj.get_body(),'_newtab');
       		}
       		
-      		printHandler = function(msgObj){
+      		printHandler = function(msgObj){      		
+      			jsonPrint = JSON.parse(flowConnector.profile.get_outputs()["PRINT"])
+				printerName = jsonPrint["name"];
+				      				
 		    	document.getElementById('PDFtoPrint').src = "http://flow.robhemsley.webfactional.com/forward/?url="+msgObj.get_body();
 		    	$('#PDFtoPrint').load(function() {
     				document.getElementById('PDFtoPrint').focus(); 
@@ -25,15 +29,25 @@
 
       
 	        $(document).ready(function() {	
+	        	flowLog = new FlowLog();
+		    	flowLog.open();	
 				
 				$('#connect').click(function() {					
 					flowConnector = new Flow(String($('#deviceId').val()), String($('#serverAddr').val()));
 					flowConnector.addHandler("OPEN", openHandler);
 					flowConnector.addHandler("PRINT", printHandler);
 					
-					flowConnector.connect(function(){
-						alert("connected");
+					flowConnector.addHandler("onmessage", function(msg){
+						flowLog.log("onmessage :\n"+msg.data);
 					});
+					
+					flowConnector.addHandler("onsend", function(msg){
+						flowLog.log("onsend :\n"+msg);
+					});
+					
+					flowConnector.connect(function(){
+						flowLog.log("connect :\nconnected");
+					});					
 				});			
 
 	
@@ -43,8 +57,9 @@
 		            $('#message').val("");
 		            return false;
 		    	});
-		    	
+		    		    	
 	        });
+	        
     	</script>
     </head>
 	<body>
@@ -60,5 +75,6 @@
 	    </br>
 	    
 	    <iframe src="" id="PDFtoPrint" width="200px" height="200px"></iframe>
+	    
 	</body>
 </html>

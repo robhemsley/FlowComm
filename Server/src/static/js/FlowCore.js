@@ -39,6 +39,14 @@ function Flow(deviceAddr, serverURL){
 			connect();
 		}
 	}
+	
+	this.status = function(){
+		if (this.ws == undefined || this.ws.readyState > 1){
+			return 0;
+		}else{
+			return 1;
+		}
+	}
 
 	this.connect = function(callback){
 		this.ws = createWs(this.serverURL);
@@ -65,6 +73,9 @@ function Flow(deviceAddr, serverURL){
 			this.callback[msg.get_id()] = callback;
 		}
 		this.ws.send(msg.to_string());
+		if ("onsend" in this.handlers){
+			this.handlers["onsend"]["function"](msg.to_string());
+		}
 	}
 	
 	this.authenticate = function(){
@@ -125,21 +136,21 @@ function Flow(deviceAddr, serverURL){
 
 	this.onmessage = function (evt) {
 		flow.processMsg(evt.data);
-		if ("onmessage" in flow.callback){
-			this.callback["onmessage"](evt);
+		if ("onmessage" in flow.handlers){
+			flow.handlers["onmessage"]["function"](evt);
 		}
 	};
 	  
 	this.onopen = function() {
 		flow.authenticate();
-		if ("onopen" in flow.callback){
-			flow.callback["onopen"]();
+		if ("onopen" in flow.handlers){
+			flow.handlers["onopen"]["function"]();
 		}
 	};
   
 	this.onclose = function(evt) {
-		if ("onclose" in flow.callback){
-			flow.callback["onclose"]();
+		if ("onclose" in flow.handlers){
+			flow.handlers["onclose"]["function"]();
 		}
 	};
 	
@@ -159,7 +170,11 @@ function Flow(deviceAddr, serverURL){
 
 
 function FlowObj(data) {
-	this.data = data[0];
+	if (data[0] != undefined){
+		this.data = data[0];
+	}else{
+		this.data = data;
+	}
 	
 	this.get_value = function(key){
 		if (key in this.data){
@@ -342,4 +357,25 @@ function FlowMsg(msg) {
 		this.set_timestamp(Math.round(new Date().getTime()/1000.0))
 		return JSON.stringify(this.msg)
 	};
+}
+
+function FlowLog(){
+	this.open = function(){
+		this.logWin = window.open('','popupWin','height=300px, width=500px');
+		this.logWin.document.writeln('<html><head><title>Flow Log</title></head><body><p></p><textarea style="width:100%; height:100%; overflow:scroll"id="flowLog"></textarea></body></html>');
+		this.logWin.document.close();
+		
+		this.log("Flow System Log");
+	}
+	
+	this.log = function(msg){
+		logText = this.logWin.document.getElementById("flowLog");
+		var currentTime = new Date();
+		var sec = currentTime.getSeconds();
+		var min = currentTime.getMinutes();
+		var hour = currentTime.getHours();
+
+		logText.value += hour+":"+min+":"+sec+" - "+msg+"\n\n";	
+	}
+
 }

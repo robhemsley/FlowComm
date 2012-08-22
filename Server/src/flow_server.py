@@ -6,6 +6,9 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import tornado.websocket
+import tornado.httpserver
+import tornado.iostream
+import tornado.httpclient
 import urllib2
 from tornado.options import define, options
 
@@ -222,7 +225,7 @@ class Application(tornado.web.Application):
             (r"/admin/(.*)", AdminHandler),
             (r"/API/V0/(.*)", APIHandler),
             (r'/imgdata/(.*)', tornado.web.StaticFileHandler, {'path': "usrfiles/"}),
-            (r"/forward/", ForwardHandler),
+            (r"/forward/", ProxyHandler),
         ]
         
         settings = dict(
@@ -374,11 +377,6 @@ class APIHandler(tornado.web.RequestHandler):
 class ClientHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("flow_client.html")
-        
-class ForwardHandler(tornado.web.RequestHandler):
-    def get(self, *args, **kwargs):
-        f = urllib2.urlopen(self.get_argument("url"))
-        self.write(f.read())
 
 class FlowSocketHandler(tornado.websocket.WebSocketHandler):
     _deviceID = None
@@ -407,6 +405,74 @@ class FlowSocketHandler(tornado.websocket.WebSocketHandler):
         
         process(self, parsed)
         print_stats();
+
+class ProxyHandler(tornado.web.RequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT']
+
+    @tornado.web.asynchronous
+    def get(self, *args, **kwargs):
+
+        def handle_response(response):
+            if response.error and not isinstance(response.error,
+                    tornado.httpclient.HTTPError):
+                self.set_status(500)
+                self.write('Internal server error:\n' + str(response.error))
+                self.finish()
+            else:
+                self.set_status(response.code)
+                for header in ('Date', 'Cache-Control', 'Server',
+                        'Content-Type', 'Location'):
+                    v = response.headers.get(header)
+                    if v:
+                        self.set_header(header, v)
+                if response.body:
+                    self.write(response.body)
+                self.finish()
+
+        req = tornado.httpclient.HTTPRequest(url=self.get_argument("url"),
+            method="GET", follow_redirects=False,
+            allow_nonstandard_methods=True)
+
+        client = tornado.httpclient.AsyncHTTPClient()
+        try:
+            client.fetch(req, handle_response)
+        except tornado.httpclient.HTTPError, e:
+            if hasattr(e, 'response') and e.response:
+                self.handle_response(e.response)
+            else:
+                self.set_status(500)
+                self.write('Internal server error:\n' + str(e))
+                self.finish()
+
+    @tornado.web.asynchronous
+    def post(self):
+        return self.get()
+
+    @tornado.web.asynchronous
+    def connect(self):
+        host, port = self.request.uri.split(':')
+        client = self.request.connection.stream
+
+        def read_from_client(data):
+            upstream.write(data)
+
+        def read_from_upstream(data):
+            client.write(data)
+
+        def client_close(_dummy):
+            upstream.close()
+
+        def upstream_close(_dummy):
+            client.close()
+
+        def start_tunnel():
+            client.read_until_close(client_close, read_from_client)
+            upstream.read_until_close(upstream_close, read_from_upstream)
+            client.write('HTTP/1.0 200 Connection established\r\n\r\n')
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        upstream = tornado.iostream.IOStream(s)
+        upstream.connect((host, int(port)), start_tunnel)
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
