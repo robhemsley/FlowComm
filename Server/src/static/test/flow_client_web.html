@@ -39,8 +39,8 @@
       		}
       		
 	        $(document).ready(function() {	
-				flowLog = new FlowLog();
-		    	flowLog.open();	
+				//flowLog = new FlowLog();
+		    	//flowLog.open();	
 
 				$("#login").click(function(event){
 					$("#login").hide();
@@ -63,15 +63,15 @@
 						flowConnector.addHandler("PRINT", printHandler);
 						
 						flowConnector.addHandler("onmessage", function(msg){
-							flowLog.log("onmessage :\n"+msg.data);
+							//flowLog.log("onmessage :\n"+msg.data);
 						});
 						
 						flowConnector.addHandler("onsend", function(msg){
-							flowLog.log("onsend :\n"+msg);
+							//flowLog.log("onsend :\n"+msg);
 						});
 						
 						flowConnector.addHandler("onclose", function(){
-							flowLog.log("onclose :\nClosed");
+							//flowLog.log("onclose :\nClosed");
 							startstopTimer.stop().once();
 							if($("#condis").html() == "Disconnect"){
 								$("#condis").html("Connect");
@@ -102,7 +102,7 @@
 	   		
 	   		function reconnect(){
 	   			flowConnector.connect(function(){
-					flowLog.log("connect :\nconnected");
+					//flowLog.log("connect :\nconnected");
 					startTimer();
 					$("#condis").html("Disconnect");
 					clearInterval(reconnectWatcher);
@@ -133,7 +133,6 @@
 				
 			    output += '<li class="span2"><a class="thumbnail" id="'+key+'" name="'+title+'" details="'+details+'" url="'+imgUrl+'"><div class="nailthumb-container"><img src="'+imgUrl+'" alt=""></div><div class="caption"><h5>'+val["title"]+'</h5></div></a></li>'		    
 			});
-      
 		  	$("#objThumbs").html(output);
 		  	$('.thumbnail').bind('click', test);
 		  	$("#objects").show();
@@ -170,11 +169,10 @@
     	</script>
     </head>
 	<body>
-	<div class="container" id="pageBody">
+	<div class="container" id="pageBody" style="width:480px">
 		<div id="login">
 			<h1>Flow</h1>
 			<p>Login text goes here</p>
-			</br>
 			</br>
 			<form class="form-horizontal">
 				<div class="control-group">
@@ -237,9 +235,6 @@
 				<span id="startstoptime"></span>
 				</p>
 			</div>
-			</br>
-			</br></br></br></br></br></br>
-			<div style="float:none">
 			</div>
 		</div>
 	</div>
