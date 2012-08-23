@@ -360,7 +360,7 @@ class APIHandler(tornado.web.RequestHandler):
                     interId = ""   
                 
                 if interId == "":
-                    object.create_interface("input", action, body)
+                    object.create_interface("output", action, body)
                 else:
                     object.update_interface("output", action, body, interId)
         

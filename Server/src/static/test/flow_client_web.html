@@ -8,6 +8,7 @@
 	
 	   	<script type='application/javascript' src="/static/js/jquery.min.js"></script>
 		<script type='application/javascript' src="/static/js/jquery.md5.js"></script>
+		<script type='application/javascript' src="/static/js/jquery.timer.js"></script>	
 		<script type='application/javascript' src="/static/js/jquery.nailthumb.1.1.min.js"></script>
 		<script type='application/javascript' src="/static/js/bootstrap-modal.js"></script>
 			
@@ -19,6 +20,8 @@
       		var flowLog = undefined;
       		var objConnect = undefined;
       		var allObjs = undefined;
+      		var startstopTimer, startstopCurrent = 0;
+      		var reconnectWatcher = undefined;
       		
       		openHandler = function(msgObj){
       		    window.open(msgObj.get_body(),'_newtab');
@@ -35,8 +38,6 @@
     			});
       		}
       		
-
-      
 	        $(document).ready(function() {	
 				flowLog = new FlowLog();
 		    	flowLog.open();	
@@ -51,11 +52,10 @@
 						if (flowConnector.status() == 1){
 							flowConnector.disconnect();
 							$("#condis").html("Connect");
+							startstopTimer.stop().once();
+							clearInterval(reconnectWatcher);
 						}else{
-							flowConnector.connect(function(){
-								flowLog.log("connect :\nconnected");
-								$("#condis").html("Disconnect")
-							});		
+							reconnect();
 						}
 					}else{
 						flowConnector = new Flow($.trim(String(objConnect.get_id())), "108.59.3.115:19708");
@@ -72,17 +72,49 @@
 						
 						flowConnector.addHandler("onclose", function(){
 							flowLog.log("onclose :\nClosed");
+							startstopTimer.stop().once();
+							if($("#condis").html() == "Disconnect"){
+								$("#condis").html("Connect");
+								reconnectWatcher = setInterval(reconnect, 10000);
+							}else{
+								$("#condis").html("Connect");
+								clearInterval(reconnectWatcher);
+							}
 						});
 						
-						flowConnector.connect(function(){
-							flowLog.log("connect :\nconnected");
-							$("#condis").html("Disconnect")
-						});		
+						reconnect();
 					}	
 				});	    	
 	        });
 	        
+	   		function startTimer(){
+	   			$("#connectionTime").show();
+	   			startstopCurrent = 0;
+				startstopTimer = $.timer(function() {
+					var min = parseInt(startstopCurrent/6000);
+					var sec = parseInt(startstopCurrent/100)-(min*60);
+					var micro = pad(startstopCurrent-(sec*100)-(min*6000),2);
+					var output = "00"; if(min > 0) {output = pad(min,2);}
+					$('#startstoptime').html(output+":"+pad(sec,2)+":"+micro);
+					startstopCurrent+=7;
+				}, 70, true);	   		
+	   		}
+	   		
+	   		function reconnect(){
+	   			flowConnector.connect(function(){
+					flowLog.log("connect :\nconnected");
+					startTimer();
+					$("#condis").html("Disconnect");
+					clearInterval(reconnectWatcher);
+				});	   		
+	   		}
+	   		
 	        
+	        function pad(number, length) {
+	var str = '' + number;
+	while (str.length < length) {str = '0' + str;}
+	return str;
+}
 	function reload(){
 		$.getJSON('/API/V0/12/objects', function(data) {		
 	   		output = "";
@@ -98,9 +130,8 @@
 				}
 				title = tmp.get_title();
 				details = tmp.get_details();
-				inputList = "";
-				outputList = "";
-			    output += '<li class="span2"><a class="thumbnail" id="'+key+'" outputs="'+outputList+'" inputs="'+inputList+'" name="'+title+'" details="'+details+'" url="'+imgUrl+'"><div class="nailthumb-container"><img src="'+imgUrl+'" alt=""></div><div class="caption"><h5>'+val["title"]+'</h5></div></a></li>'		    
+				
+			    output += '<li class="span2"><a class="thumbnail" id="'+key+'" name="'+title+'" details="'+details+'" url="'+imgUrl+'"><div class="nailthumb-container"><img src="'+imgUrl+'" alt=""></div><div class="caption"><h5>'+val["title"]+'</h5></div></a></li>'		    
 			});
       
 		  	$("#objThumbs").html(output);
@@ -119,11 +150,23 @@
 		$("#objSelectImg").attr('src', $(this).attr("url"));
 		$("#objSelectTxt").html($(this).attr("name"));
 		$("#objDes").html("<b>Details:</b></br> "+$(this).attr("details"));
-		$("#objInputs").html("<b>Inputs:</b></br> "+$(this).attr("inputs"));
-		$("#objOutputs").html("<b>Outputs:</b></br> "+$(this).attr("outputs"));
+		var output = "";
+		var input = "";
+		$.each(objConnect.get_outputs(), function(key, val) {
+			output += ""+toTitleCase(key)+", ";
+		});
 		
+		$.each(objConnect.get_inputs(), function(key, val) {
+			input += ""+toTitleCase(key)+", ";
+		});
+
+		$("#objInputs").html("<b>Inputs:</b></br> "+input);
+		$("#objOutputs").html("<b>Outputs:</b></br> "+output);
 	}
 	        
+	function toTitleCase(str){
+    	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	}
     	</script>
     </head>
 	<body>
@@ -161,11 +204,12 @@
 			<h1>Objects</h1>
 			<p>Please select the object this client controls.</p>
 			</br>
-			<ul class="thumbnails" id="objThumbs">
+			<ul class="thumbnails" id="objThumbs" style="width:500px">
 			</ul>
 		</div>
 		
 		<div id="objectSelect" style="display:none">
+			</br>
 			<h1 id="objName"></h1>
 			</br>
 			<div style="float:left">
@@ -179,7 +223,7 @@
 							<h5 id="objSelectTxt"></h5>
 						</div>
 					</div>
-					</br></br>
+					</br>
 					<button type="button" class="btn" id="condis">Connect</button>
 				</li>
 			</ul>
@@ -188,8 +232,13 @@
 				<p id="objDes"></p>
 				<p id="objInputs"></p>
 				<p id="objOutputs"></p>
+				</br>
+				<p id="connectionTime" style="display:none">Connection Time:
+				<span id="startstoptime"></span>
+				</p>
 			</div>
-			</br></br></br></br></br></br></br>
+			</br>
+			</br></br></br></br></br></br>
 			<div style="float:none">
 			</div>
 		</div>
