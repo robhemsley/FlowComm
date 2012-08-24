@@ -90,7 +90,8 @@
 	   		function startTimer(){
 	   			$("#connectionTime").show();
 	   			startstopCurrent = 0;
-				startstopTimer = $.timer(function() {
+	   							   			
+				startstopTimer = $.timer(function() {				
 					var min = parseInt(startstopCurrent/6000);
 					var sec = parseInt(startstopCurrent/100)-(min*60);
 					var micro = pad(startstopCurrent-(sec*100)-(min*6000),2);
@@ -103,7 +104,9 @@
 	   		function reconnect(){
 	   			flowConnector.connect(function(){
 					//flowLog.log("connect :\nconnected");
-					startTimer();
+					try{
+						startTimer();
+					}catch(err){}
 					$("#condis").html("Disconnect");
 					clearInterval(reconnectWatcher);
 				});	   		
