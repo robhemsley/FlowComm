@@ -105,8 +105,9 @@
 	   			flowConnector.connect(function(){
 					//flowLog.log("connect :\nconnected");
 					try{
-						startTimer();
+						loadPlugins();
 					}catch(err){}
+					startTimer();
 					$("#condis").html("Disconnect");
 					clearInterval(reconnectWatcher);
 				});	   		
