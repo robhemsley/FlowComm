@@ -99,6 +99,7 @@
     		alert("Saved");
     		$("#imgWidth").attr("value", "0")
 			$("#imgHeight").attr("value", "0")
+			$("#imgState").attr("value", "")
 			$("#imgDisplay").attr("src", "http://placehold.it/360x268");
 			clearFileInput();
 
@@ -124,6 +125,7 @@
 			  		alert("Deleted");
 			  		$("#imgWidth").attr("value", "0")
 					$("#imgHeight").attr("value", "0")
+					$("#imgState").attr("value", "")
 					$("#imgDisplay").attr("src", "http://placehold.it/360x268");
 			    	clearFileInput();
 			    	
@@ -205,6 +207,7 @@
 		tmp = objDetails[0]["targetImgs"][$(this).attr("imgId")]
 		$("#imgWidth").attr("value", tmp["width"])
 		$("#imgHeight").attr("value", tmp["height"])
+		$("#imgState").attr("value", tmp["state"])
 		
 		$("#imgDisplay").attr("src", tmp["imgUrl"]);
 		//$('#imgDisplay').nailthumb({width:360, height:268});
@@ -296,15 +299,15 @@
                 <label>Upload Image:</label>
             	<input type="file" style="margin-left:10px" name="imgFile" id="imgFile"></input>
             	</br>
-            	</br>
+            	<label>State:</label>
+        		<input type="text" style="height:30px" name="imgState" id="imgState" value="0">
+        		</br>
         		<label>Height:</label>
         		<input type="text" style="height:30px" name="imgHeight" id="imgHeight" value="0">
-        		</br>
         		</br>
         		<label>Width:</label>
         		<input type="text" style="height:30px" name="imgWidth" id="imgWidth" value="0">
         		<input type="hidden" style="height:30px" name="imgUrl" id="imgUrl">
-   				</br>
    				</br>
         		<button type="submit" class="btn">Save</button>
       			<button type="button" class="btn" style="margin-left:10px" id="imgRemove">Delete Image</button>

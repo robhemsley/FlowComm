@@ -27,6 +27,10 @@
       		    window.open(msgObj.get_body(),'_newtab');
       		}
       		
+      		copyHandler = function(msgObj){
+      		    window.open("http://flow.robhemsley.webfactional.com/download/?url="+msgObj.get_body());
+      		}
+      		
       		printHandler = function(msgObj){      		
       			jsonPrint = JSON.parse(flowConnector.profile.get_outputs()["PRINT"])
 				printerName = jsonPrint["name"];
@@ -60,6 +64,8 @@
 					}else{
 						flowConnector = new Flow($.trim(String(objConnect.get_id())), "108.59.3.115:19708");
 						flowConnector.addHandler("OPEN", openHandler);
+						flowConnector.addHandler("DETAILS", openHandler);
+						flowConnector.addHandler("COPY", copyHandler);
 						flowConnector.addHandler("PRINT", printHandler);
 						
 						flowConnector.addHandler("onmessage", function(msg){

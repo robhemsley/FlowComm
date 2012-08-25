@@ -17,7 +17,7 @@ var pix_per_meter = 6000;
 $(document).ready(function() {	
 	loadCookieTargets();
 
-
+	//108.59.3.115
 	flowConnector = new Flow("DYNAMIC", "108.59.3.115:19708");
 	connect();
 	
@@ -53,19 +53,21 @@ window.onbeforeunload = function(e) {
 
 function loadCookieTargets(){
 	obj_cookie = Utils.getCookie("flow_objects");
+	count = 0;
 	if (obj_cookie != undefined){
 		tmp_objs = JSON.parse(obj_cookie);
 		for (index in tmp_objs){
 			imgs = tmp_objs[index];
 			for (index1 in imgs){		 					
-				addTarget(index, imgs[index1]["imgUrl"], imgs[index1]["height"], imgs[index1]["width"]);
+				addTarget(count, index, index1, imgs[index1]["imgUrl"], imgs[index1]["height"], imgs[index1]["width"]);
+				count += 1;
 			}
 			targetImgs.push(index);
 		}
 	}
 }
 
-function addTarget(id, url, height, width){
+function addTarget(id, objId, imgId, url, height, width){
 	var headID = document.getElementsByTagName("head")[0];       
 	var cssNode = document.createElement('link');
 	cssNode.id = id;
@@ -73,6 +75,8 @@ function addTarget(id, url, height, width){
 	cssNode.href = url;
 	cssNode.title = "width:"+(width/100)+"m";
 	cssNode.title += "; height:"+(height/100)+"m";
+	cssNode.setAttribute("objid", objId);
+	cssNode.setAttribute("imgid", imgId);
 	headID.appendChild(cssNode);
 		
 	var divTag = document.createElement("div"); 
@@ -105,7 +109,7 @@ function pauseCheck() {
 //Viper Code
 
 function onViperReady() {
-	viper.setLoggingEnabled(false);
+	viper.setLoggingEnabled(true);
 	viper.setBrowserBounce(false);
 	viper.setTrackingLostAnimationEnabled(false);
 	viper.setHtmlResolution(pix_per_meter);
@@ -113,9 +117,11 @@ function onViperReady() {
 	var observer = {
 		onMapCreatedWithImage : function(imageId) {
 			var elemId = imageId + "_node";
+			onNodeFound(imageId);
+
 			
 			// Show found node, hide the others
-			var nodes = document.getElementsByClassName("node");
+			/*var nodes = document.getElementsByClassName("node");
 			for (var i in nodes) {
 				var node = nodes[i];
 				if (node.id == elemId) {
@@ -124,7 +130,7 @@ function onViperReady() {
 				}else {
 					node.style.display = "none";
 				}
-			}
+			}*/
 		},
 		
 		onMapDiscarded : function() {
@@ -206,12 +212,19 @@ function toTitleCase(str){
     return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 }
 
-function processTest(tmp){
-	selectedObject(allObj[tmp]);
+function processTest(objId, imgId){
+	selectedObject(allObj[objId], imgId);
 }
 
-function selectedObject(obj){
+function selectedObject(obj, imgId){
+	if (imgId == undefined){
+		imgId = 0;
+	}
 	document.getElementById("ui_obj_name").innerHTML = obj.get_title();
+
+	imgs = obj.get_imgs();
+	viper.log(imgs[imgId]["state"]);
+	viper.log(imgId);
 	
 	$("#obj_details_title_txt").html(obj.get_title());
 	$("#obj_details_body_txt").html(obj.get_details());
@@ -330,17 +343,18 @@ function sucess_failure_lookup(msgObj){
 	}
 }
 
-function onNodeFound(nodeId, imageId) {							
-				
-	if (!(imageId in allObj)){
-		flowConnector.getObjDetails(imageId, function(msgObj){
+function onNodeFound(targetId) {							
+	objId = $("#"+targetId).attr("objid");
+	imgId = $("#"+targetId).attr("imgid");
+	
+	if (!(objId in allObj)){
+		flowConnector.getObjDetails(objId, function(msgObj){
 			objJson = JSON.parse(msgObj.get_body());
 			flowObj = new FlowObj(objJson);
-			allObj[imageId] = flowObj;
-							
-			processTest(imageId);
+			allObj[objId] = flowObj;
+			processTest(objId, imgId);
 		});
 	}else{
-		processTest(imageId);	
+		processTest(objId, imgId);	
 	}					
 }

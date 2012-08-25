@@ -78,15 +78,15 @@ class dbObject:
         self.cur.execute("DELETE FROM interface WHERE `id`=%s", (id))
         self.db.commit()
     
-    def create_target(self, height, width, url):
-        self.cur.execute("INSERT INTO img_target (`obj_id`, `url`, `width`, `height`) VALUES (%s, %s, %s, %s)", (self.obj_id, url, width, height))
+    def create_target(self, height, width, state, url):
+        self.cur.execute("INSERT INTO img_target (`obj_id`, `url`, `width`, `height`, `state`) VALUES (%s, %s, %s, %s, %s)", (self.obj_id, url, width, height, state))
         self.db.commit()
         
-    def update_target(self, height, width, url = None):
+    def update_target(self, height, width, state, url = None):
         if url == None:
-            self.cur.execute("UPDATE img_target SET `obj_id`=%s, `width`=%s, `height`=%s WHERE `obj_id`=%s AND `url`=%s", (self.obj_id, width, height, self.obj_id, url))
+            self.cur.execute("UPDATE img_target SET `obj_id`=%s, `width`=%s, `height`=%s, `state`=%s WHERE `obj_id`=%s AND `url`=%s", (self.obj_id, width, height, state, self.obj_id, url))
         else:    
-            self.cur.execute("UPDATE img_target SET `obj_id`=%s, `url`=%s, `width`=%s, `height`=%s WHERE `obj_id`=%s AND `url`=%s", (self.obj_id, url, width, height, self.obj_id, url))
+            self.cur.execute("UPDATE img_target SET `obj_id`=%s, `url`=%s, `width`=%s, `height`=%s, `state`=%s WHERE `obj_id`=%s AND `url`=%s", (self.obj_id, url, width, height, state, self.obj_id, url))
         self.db.commit()
     
     def create_object(self, details, title):
@@ -140,7 +140,7 @@ class dbObject:
                     interface[inter["type"]][inter["id"]] = {"action": inter["action"], "body": inter["body"]}
                     
                 for img in obj["targetImgs"]:
-                     target_imgs.append({"imgUrl": img["url"], "width": img["width"], "height": img["height"]})
+                     target_imgs.append({"imgUrl": img["url"], "width": img["width"], "height": img["height"], "state": img["state"]})
                      
                 obj_out["interfaces"] = interface
                 obj_out["targetImgs"] = target_imgs

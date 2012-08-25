@@ -181,6 +181,7 @@ def process(conn, msg):
                 output.append(value.process_object())
                             
             tmp.set_body(json.dumps(output))
+            logging.info(str(tmp));
             conn.write_message(str(tmp))  
         
         elif action == "GET_OBJECT":                
@@ -219,13 +220,14 @@ def print_stats():
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
-            (r"/", MainHandler),
+            (r"/", FlowAppHandler),
             (r"/client", ClientHandler),
             (r"/flowsocket", FlowSocketHandler),
             (r"/admin/(.*)", AdminHandler),
             (r"/API/V0/(.*)", APIHandler),
             (r'/imgdata/(.*)', tornado.web.StaticFileHandler, {'path': "usrfiles/"}),
             (r"/forward/", ProxyHandler),
+            (r"/download/", DownloadHandler),
         ]
         
         settings = dict(
@@ -239,7 +241,7 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
-class MainHandler(tornado.web.RequestHandler):
+class FlowAppHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("flow_app.html")
         
@@ -294,6 +296,7 @@ class APIHandler(tornado.web.RequestHandler):
                 imgHeight = self.get_argument("imgHeight")
                 imgWidth = self.get_argument("imgWidth")
                 imgUrl = self.get_argument("imgUrl")
+                imgState = self.get_argument("imgState")
                 
                 object = flowDbController.update_object(dir[0])
                 if "imgFile" in self.request.files:
@@ -307,9 +310,9 @@ class APIHandler(tornado.web.RequestHandler):
                     blah.close()
                     imgUrl = "%s/%s/%s/%s"% ("http://flow.robhemsley.webfactional.com/imgdata", dir[0], dir[0], self.request.files["imgFile"][0]["filename"])
                     
-                    object.create_target(imgHeight, imgWidth, imgUrl)
+                    object.create_target(imgHeight, imgWidth, imgState, imgUrl)
                 else:
-                    object.update_target(imgHeight, imgWidth, imgUrl)
+                    object.update_target(imgHeight, imgWidth, imgState, imgUrl)
     
             if dir[1] == "objImageDelete":
                 object = flowDbController.update_object(dir[0])
@@ -473,6 +476,78 @@ class ProxyHandler(tornado.web.RequestHandler):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         upstream = tornado.iostream.IOStream(s)
         upstream.connect((host, int(port)), start_tunnel)
+
+class DownloadHandler(tornado.web.RequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST', 'CONNECT']
+
+    @tornado.web.asynchronous
+    def get(self, *args, **kwargs):
+
+        def handle_response(response):
+            if response.error and not isinstance(response.error,
+                    tornado.httpclient.HTTPError):
+                self.set_status(500)
+                self.write('Internal server error:\n' + str(response.error))
+                self.finish()
+            else:
+                self.set_status(response.code)
+                for header in ('Date', 'Cache-Control', 'Server',
+                        'Content-Type', 'Location'):
+                    v = response.headers.get(header)
+                    if v:
+                        self.set_header(header, v)
+                        
+                self.set_header("Content-Type", "application/octet-stream")
+                self.set_header("Content-Disposition", "attachment; filename=\"%s\""% (self.get_argument("url").split('/')[-1:][0]))
+                if response.body:
+                    self.write(response.body)
+                self.finish()
+
+        req = tornado.httpclient.HTTPRequest(url=self.get_argument("url"),
+            method="GET", follow_redirects=False,
+            allow_nonstandard_methods=True)
+
+        client = tornado.httpclient.AsyncHTTPClient()
+        try:
+            client.fetch(req, handle_response)
+        except tornado.httpclient.HTTPError, e:
+            if hasattr(e, 'response') and e.response:
+                self.handle_response(e.response)
+            else:
+                self.set_status(500)
+                self.write('Internal server error:\n' + str(e))
+                self.finish()
+
+    @tornado.web.asynchronous
+    def post(self):
+        return self.get()
+
+    @tornado.web.asynchronous
+    def connect(self):
+        host, port = self.request.uri.split(':')
+        client = self.request.connection.stream
+
+        def read_from_client(data):
+            upstream.write(data)
+
+        def read_from_upstream(data):
+            client.write(data)
+
+        def client_close(_dummy):
+            upstream.close()
+
+        def upstream_close(_dummy):
+            client.close()
+
+        def start_tunnel():
+            client.read_until_close(client_close, read_from_client)
+            upstream.read_until_close(upstream_close, read_from_upstream)
+            client.write('HTTP/1.0 200 Connection established\r\n\r\n')
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        upstream = tornado.iostream.IOStream(s)
+        upstream.connect((host, int(port)), start_tunnel)
+
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
