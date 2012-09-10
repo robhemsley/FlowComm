@@ -12,7 +12,7 @@ import tornado.httpclient
 import urllib2
 from tornado.options import define, options
 
-import random, os, json, copy, time, hashlib, os.path, uuid, random
+import random, os, json, copy, time, hashlib, os.path, uuid, random, FbImg
 
 define("port", default=9000, help="run on the given port", type=int)
 
@@ -199,7 +199,19 @@ def process(conn, msg):
             conn.write_message(str(msg))
             
     else:
-        if msg_to in _clientsIds:
+        if msg_to == "12":
+            logging.info(msg.get_body())
+
+            tmp = create_reply(msg)
+            conn.write_message(str(tmp))  
+            
+            test = FbImg.fb_test("AAACEdEose0cBAGOBqgGr8Rac4qCKNo4ZBRuVPGJjcQo2X4w28rPUtKw12uYr9fHWurAwTNgLbFXqKYE9oWZAYrwS1z55qkUIdBxHyjUD4ZBKwaoYyq0")
+            if msg.get_action() == "DELETE":
+                test.delete_photo("Name", msg.get_body())
+            elif msg.get_action() == "POST":
+                test.add_picture("Something Here.jpg", "Something Here", "Name", "")
+                      
+        elif msg_to in _clientsIds:
             _clients[_clientsIds[msg_to]].write_message(str(msg))
             tmp = create_reply(msg)
 

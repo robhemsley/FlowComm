@@ -76,6 +76,7 @@ function Flow(deviceAddr, serverURL){
 		if ("onsend" in this.handlers){
 			this.handlers["onsend"]["function"](msg.to_string());
 		}
+		viper.log("THERE")
 	}
 	
 	this.authenticate = function(){
