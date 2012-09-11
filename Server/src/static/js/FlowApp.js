@@ -228,8 +228,8 @@ function selectedObject(obj, imgId){
 	document.getElementById("ui_obj_name").innerHTML = obj.get_title();
 
 	imgs = obj.get_imgs();
-	viper.log(imgs[imgId]["state"]);
-	viper.log(imgId);
+	viper.log("State:" + imgs[imgId]["state"]);
+	viper.log("ID:" + imgId);
 	
 	$("#obj_details_title_txt").html(obj.get_title());
 	$("#obj_details_body_txt").html(obj.get_details());
@@ -279,16 +279,19 @@ function selectedObject(obj, imgId){
 	$('.search-select').bind('click', actionSearchSelected);
 	$('.action-select').bind('click', actionSelected);
 	
+	found = false;
 	for (var index in outputs){
 		if(currentObj != undefined && index in objInputs){
+			objOutputs = {}; 
 			objOutputs[index] = obj;
 			check();
+			found = true;
 		}
 	}
 	
-	found = false;
 	for (var index in inputs){
 		if(currentObj != undefined && index in objOutputs){
+			objInputs = {}; 
 			objInputs[index] = obj;
 			check();
 			found = true;
@@ -297,7 +300,7 @@ function selectedObject(obj, imgId){
 	
 	currentObj = obj;
 		
-	if(highlight && !found){
+	if(highlight && !found && imgs[imgId]["state"] != null){
 		action = $("#"+toTitleCase(imgs[imgId]["state"])).children().attr("action")
 		intertype = $("#"+toTitleCase(imgs[imgId]["state"])).children().attr("inter-type")
 		
@@ -307,22 +310,27 @@ function selectedObject(obj, imgId){
 			
 			if (accept_defaults){
 				if(intertype == "output"){
+					objOutputs = {}; 
 					objOutputs[$(this).attr("action")] = currentObj;
 				}else{
+					objInputs = {}; 
 					objInputs[$(this).attr("action")] = currentObj;
 				}
 				
 				setTimeout('check(); $("#ui_obj_inputs_list_open").removeClass("open"); $("#ui_obj_outputs_list_open").removeClass("open");', 1500);
 			}
 		}
-	}else if (accept_defaults && !found){
+	}else if (accept_defaults && !found && imgs[imgId]["state"] != null){
+
 		action = $("#"+toTitleCase(imgs[imgId]["state"])).children().attr("action")
 		intertype = $("#"+toTitleCase(imgs[imgId]["state"])).children().attr("inter-type")
 
 		if ($("#"+toTitleCase(action)).length) {
 			if(intertype == "output"){
+				objOutputs = {}; 
 				objOutputs[$(this).attr("action")] = currentObj;
 			}else{
+				objInputs = {}; 
 				objInputs[$(this).attr("action")] = currentObj;
 			}
 				
@@ -338,6 +346,7 @@ function actionSearchSelected(event){
 
 function actionSelected(event){
 	list_name = $(this).parent().parent().attr("id");
+	viper.log("LOOK:"+ $(this).attr("action"));
 	if(list_name.indexOf("inputs") != -1){
 		objInputs = {}; 
 		objInputs[$(this).attr("action")] = currentObj;
@@ -350,9 +359,9 @@ function actionSelected(event){
 }
 
 function check(){
-	for (var index in objInputs){
-		if(index in objOutputs){
-			setTransferUI(objInputs[index].get_title(), objOutputs[index].get_title(), toTitleCase(index));
+	for (var index1 in objOutputs){
+		if(index1 in objInputs){
+			setTransferUI(objInputs[index1].get_title(), objOutputs[index1].get_title(), toTitleCase(index1));
 			
 			$("#transferContainer").fadeIn();
 			$("#tdCancelBtn").click(function() {
@@ -361,16 +370,13 @@ function check(){
 				objOutputs = {};
 			});
 			
-			$("#tdSendBtn").click(function() {
-//				if (objInputs.hasOwnProperty(index)) {
-					obj = objInputs[index]
-//				}else if (objOutputs.hasOwnProperty(index)) {
-//					obj = objOutputs[index]
-//				}
-  				flowConnector.sendFlowMsg(obj.get_id(), index, "200", obj.get_inputs()[index], sucess_failure_lookup);
-				objInputs = {}; 
-				objOutputs = {};
+			$('#tdSendBtn').unbind('click');
+			$("#tdSendBtn").click({"index": index1}, function(event) {
+				obj = objOutputs[event.data.index]
+				
+  				flowConnector.sendFlowMsg(obj.get_id(), event.data.index, "200", objInputs[event.data.index].get_inputs()[event.data.index], sucess_failure_lookup);
 			});
+			break;
 		}
 	}
 }
@@ -386,6 +392,8 @@ function sucess_failure_lookup(msgObj){
 	if (msgObj.get_status() != 200){
 		alert(msgObj.get_body());
 	}else{
+		objInputs = {}; 
+		objOutputs = {};
 		$("#transferContainer").fadeOut();
 	}
 }

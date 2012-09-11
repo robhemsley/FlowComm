@@ -199,13 +199,13 @@ def process(conn, msg):
             conn.write_message(str(msg))
             
     else:
-        if msg_to == "12":
+        if msg_to == "13":
             logging.info(msg.get_body())
 
             tmp = create_reply(msg)
             conn.write_message(str(tmp))  
             
-            test = FbImg.fb_test("AAACEdEose0cBAGOBqgGr8Rac4qCKNo4ZBRuVPGJjcQo2X4w28rPUtKw12uYr9fHWurAwTNgLbFXqKYE9oWZAYrwS1z55qkUIdBxHyjUD4ZBKwaoYyq0")
+            test = FbImg.fb_test("AAACEdEose0cBALTnrtxJNjZAWh306t1pZBjvjw0dP75aDuK2ZA2NRLrFNyfPXnDM3R9pSN1vuzoxpv3xDfjByMcyqrZAIK1sd0axliOWM0Km1e7WjT3ZB")
             if msg.get_action() == "DELETE":
                 test.delete_photo("Name", msg.get_body())
             elif msg.get_action() == "POST":
