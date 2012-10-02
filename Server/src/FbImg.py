@@ -45,23 +45,23 @@ class fb_test():
         self.graph.delete_object(id)   
                 
 def setupDemo():
-    test = fb_test("AAACEdEose0cBAAu3eL0wVZBCULpmtYyuIiTl0xKZB5p9Fk4JuzuXPZAEXyyZCoiAhGEwEruUqNaQR300ZAcYjIFhybt3MhbqHQWTBTDrj2hDaBx6mZAQXd")
+    test = fb_test("AAACEdEose0cBABKa85vsR8eoC847F5Df4PGwqgHL4yesM734cMBsLXg1xkKip3sAEx0Y9gr3tB96a8FZA3t6kwRZAo2R2E4h05gyGU1C3mT4YuIML7")
     albumName = "Name"
     albumDes = "album description"
     
-    for images in os.listdir("images"):
-        fullPath = os.path.abspath("images/"+images)
-        tmp = StateImage(fullPath)
-        for i in tmp.cropImage("img_states/%s"% (images.split(".")[0]), 2, 2):   
-            print i
+    #for images in os.listdir("images"):
+    #    fullPath = os.path.abspath("images/"+images)
+    #    tmp = StateImage(fullPath)
+    #    for i in tmp.cropImage("img_states/%s"% (images.split(".")[0]), 2, 2):   
+    #        print i
                  
-        #test.add_picture(fullPath, images.split(".")[0], albumName, albumDes)
+    test.add_picture("Something Here.jpg", "Something Here", albumName, albumDes)
     
-    for img in test.get_photos("Name")["data"]:
-        print img
+    #for img in test.get_photos("Name")["data"]:
+    #    print img
         #test.delete_photo("Name", img["name"])
         
-    print test.get_photos("Name")
+    #print test.get_photos("Name")
     #test.delete_photo("Name", "Test image upload")
     
 if __name__ == '__main__':

@@ -17,12 +17,14 @@ class flowDb:
                                       passwd='wgpmilo1988',
                                       db='robhemsley_flow',
                                       cursorclass = MySQLdb.cursors.DictCursor)
+            print "Connected Remote"
         else:
             self.db = MySQLdb.connect(host='127.0.0.1',
                                       user='root',
                                       passwd='',
                                       db='robhemsley_flow',
                                       cursorclass = MySQLdb.cursors.DictCursor)
+            print "Connected Local"
         
                 
     def get_object(self, obj_id):

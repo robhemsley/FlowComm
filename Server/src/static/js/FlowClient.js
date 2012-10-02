@@ -5,6 +5,7 @@
 
 var indicator = null;
 var allObj = {};
+var what = {};
 var lastObj = undefined;
 var targetImgs = new Array();
 
@@ -14,8 +15,8 @@ var pix_per_meter = 6000;
 $(document).ready(function() {	
 	loadCookieTargets();
 
-
-	flowConnector = new Flow("DYNAMIC", "18.111.57.208:9000");
+	//
+	flowConnector = new Flow("DYNAMIC", "108.59.3.115:9000");
 	flowConnector.connect(function(){
 		flowConnector.sendFlowMsg(flowConnector.serverAddr, "GET_OBJECTS", "200", "", function(msgObj){
 			objJson = JSON.parse(msgObj.get_body());
@@ -43,6 +44,7 @@ function loadCookieTargets(){
 		tmp_objs = JSON.parse(obj_cookie);
 		for (index in tmp_objs){
 			imgs = tmp_objs[index];
+			what[index] = new FlowObj(tmp_objs);
 			for (index1 in imgs){		 					
 				addTarget(index, imgs[index1]["imgUrl"], imgs[index1]["height"], imgs[index1]["width"]);
 			}

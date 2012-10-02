@@ -8,10 +8,11 @@ var allObj = {};
 var currentObj = undefined;
 var objInputs = {}; 
 var objOutputs = {}; 
+var what = {};
 var targetImgs = new Array();
 var lastCheck = 0;
 
-var accept_defaults = false;
+var accept_defaults = true;
 var highlight = true;
 
 
@@ -112,7 +113,7 @@ function pauseCheck() {
 //Viper Code
 
 function onViperReady() {
-	viper.setLoggingEnabled(true);
+	viper.setLoggingEnabled(false);
 	viper.setBrowserBounce(false);
 	viper.setTrackingLostAnimationEnabled(false);
 	viper.setHtmlResolution(pix_per_meter);
@@ -308,17 +309,42 @@ function selectedObject(obj, imgId){
 			$("#"+toTitleCase(imgs[imgId]["state"])).addClass('active');
 			$("#"+$("#"+toTitleCase(imgs[imgId]["state"])).parent().attr("id")+"_open").addClass('open');
 			
-			if (accept_defaults){
+			if (accept_defaults){	
 				if(intertype == "output"){
 					objOutputs = {}; 
 					objOutputs[$(this).attr("action")] = currentObj;
-				}else{
-					objInputs = {}; 
+					viper.log("test"+JSON.parse(currentObj.get_inputs()[$(this).attr("action")])['action']);
+					if ("action" in JSON.parse(currentObj.get_inputs()[$(this).attr("action")])){
+						var obj_id = JSON.parse(currentObj.get_inputs()[$(this).attr("action")])['action'];
+
+						flowConnector.getObjDetails(obj_id, function(msgObj){
+							objJson = JSON.parse(msgObj.get_body());
+							currentObj = new FlowObj(objJson);
+							allObj[obj_id] = currentObj;
+	
+							objIntputs = {}; 
+							objIntputs["DELETE"] = currentObj;												
+						});
+					}
+			}else{
+					objInputs = {};
 					objInputs[$(this).attr("action")] = currentObj;
+					viper.log("test"+JSON.parse(currentObj.get_inputs()[$(this).attr("action")])['action']);
+					if ("action" in JSON.parse(currentObj.get_inputs()[$(this).attr("action")])){
+						var obj_id = JSON.parse(currentObj.get_inputs()[$(this).attr("action")])['action'];
+
+						flowConnector.getObjDetails(obj_id, function(msgObj){
+							objJson = JSON.parse(msgObj.get_body());
+							currentObj = new FlowObj(objJson);
+							allObj[obj_id] = currentObj;
+	
+							objOutputs = {};
+							objOutputs["DELETE"] = currentObj;										
+						});	
+					}
 				}
-				
-				setTimeout('check(); $("#ui_obj_inputs_list_open").removeClass("open"); $("#ui_obj_outputs_list_open").removeClass("open");', 1500);
 			}
+			setTimeout('check(); $("#ui_obj_inputs_list_open").removeClass("open"); $("#ui_obj_outputs_list_open").removeClass("open");', 1500);	
 		}
 	}else if (accept_defaults && !found && imgs[imgId]["state"] != null){
 
@@ -373,6 +399,11 @@ function check(){
 			$('#tdSendBtn').unbind('click');
 			$("#tdSendBtn").click({"index": index1}, function(event) {
 				obj = objOutputs[event.data.index]
+				
+				viper.log("objID:" +obj.get_id());
+				viper.log("objID:" +obj.get_id());
+				viper.log("dataIndex:" +event.data.index);
+				viper.log("InputsIndes:" +objInputs[event.data.index].get_inputs()[event.data.index]);
 				
   				flowConnector.sendFlowMsg(obj.get_id(), event.data.index, "200", objInputs[event.data.index].get_inputs()[event.data.index], sucess_failure_lookup);
 			});

@@ -199,7 +199,7 @@ def process(conn, msg):
             conn.write_message(str(msg))
             
     else:
-        if msg_to == "13":
+        """if msg_to == "13":
             logging.info(msg.get_body())
 
             tmp = create_reply(msg)
@@ -207,11 +207,14 @@ def process(conn, msg):
             
             test = FbImg.fb_test("AAACEdEose0cBALTnrtxJNjZAWh306t1pZBjvjw0dP75aDuK2ZA2NRLrFNyfPXnDM3R9pSN1vuzoxpv3xDfjByMcyqrZAIK1sd0axliOWM0Km1e7WjT3ZB")
             if msg.get_action() == "DELETE":
-                test.delete_photo("Name", msg.get_body())
+                jsonMsg = json.loads(str(msg.get_body()))
+
+                test.delete_photo("Name", jsonMsg["url"])
             elif msg.get_action() == "POST":
                 test.add_picture("Something Here.jpg", "Something Here", "Name", "")
                       
-        elif msg_to in _clientsIds:
+        el"""
+        if msg_to in _clientsIds:
             _clients[_clientsIds[msg_to]].write_message(str(msg))
             tmp = create_reply(msg)
 

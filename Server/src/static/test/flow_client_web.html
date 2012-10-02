@@ -62,6 +62,7 @@
 							reconnect();
 						}
 					}else{
+						//108.59.3.115
 						flowConnector = new Flow($.trim(String(objConnect.get_id())), "108.59.3.115:19708");
 						flowConnector.addHandler("OPEN", openHandler);
 						flowConnector.addHandler("DETAILS", openHandler);
